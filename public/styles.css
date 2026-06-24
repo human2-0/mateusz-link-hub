@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  --ink: #f2f0e9;
+  --muted: #929692;
+  --line: rgba(255, 255, 255, 0.12);
+  --panel: rgba(17, 20, 25, 0.78);
+  --lime: #c8f25d;
+  --coral: #ff8066;
+  --blue: #71a7ff;
+  --violet: #b798ff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { min-width: 320px; background: #0b0d12; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 16% 12%, rgba(113, 167, 255, 0.12), transparent 31rem),
+    radial-gradient(circle at 84% 68%, rgba(200, 242, 93, 0.08), transparent 29rem),
+    #0b0d12;
+  font-family: "Manrope", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.56;
+  background: url('/assets/project-constellation.svg') center / cover no-repeat;
+  pointer-events: none;
+}
+
+.page-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 92px;
+  border-bottom: 1px solid var(--line);
+}
+
+.identity, .github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.monogram {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(200, 242, 93, 0.55);
+  border-radius: 50%;
+  color: var(--lime);
+  font: 500 12px "DM Mono", monospace;
+}
+
+.github-link { color: var(--muted); font-size: 14px; transition: color 180ms ease; }
+.github-link:hover { color: var(--lime); }
+
+.hero { padding: clamp(80px, 11vw, 150px) 0 clamp(52px, 8vw, 96px); }
+
+.eyebrow, .status, .stack, .card-number, footer {
+  font-family: "DM Mono", ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.eyebrow { color: var(--muted); font-size: 12px; }
+.signal { display: inline-block; width: 7px; height: 7px; margin-right: 9px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 18px var(--lime); }
+
+h1 {
+  max-width: 900px;
+  margin: 24px 0 28px;
+  font-size: clamp(48px, 8.4vw, 108px);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 0.93;
+}
+
+h1 em { color: var(--muted); font-style: normal; }
+.summary { max-width: 590px; margin: 0; color: #b8bbb7; font-size: clamp(17px, 2vw, 21px); line-height: 1.65; }
+
+.project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+
+.project-card {
+  position: relative;
+  min-height: 310px;
+  padding: 28px;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--panel), rgba(12, 14, 18, 0.46));
+  backdrop-filter: blur(12px);
+  transition: transform 220ms ease, background 220ms ease;
+}
+
+.project-card::after {
+  position: absolute;
+  right: -80px;
+  bottom: -110px;
+  width: 250px;
+  height: 250px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.08;
+  content: "";
+  transition: transform 280ms ease, opacity 280ms ease;
+}
+
+.project-card:hover, .project-card:focus-visible { z-index: 1; outline: none; background: rgba(28, 31, 37, 0.92); transform: translateY(-4px); }
+.project-card:hover::after, .project-card:focus-visible::after { opacity: 0.18; transform: scale(1.16); }
+
+.card-number { color: #6f736f; font-size: 11px; }
+.card-icon { position: absolute; top: 25px; right: 28px; color: currentColor; font-size: 26px; transition: transform 180ms ease; }
+.project-card:hover .card-icon { transform: translate(3px, -3px); }
+.card-body { position: absolute; right: 28px; bottom: 28px; left: 28px; display: flex; flex-direction: column; align-items: flex-start; }
+.status { margin-bottom: 13px; color: var(--muted); font-size: 10px; }
+.status i { display: inline-block; width: 5px; height: 5px; margin: 0 7px 1px 0; border-radius: 50%; background: currentColor; }
+.status.live { color: var(--lime); }
+.project-card strong { font-size: clamp(25px, 3vw, 38px); font-weight: 500; letter-spacing: -0.035em; }
+.description { max-width: 390px; margin-top: 12px; color: #aeb1ad; line-height: 1.55; }
+.stack { margin-top: 24px; color: #747874; font-size: 9px; }
+
+.card-cv { color: var(--blue); }
+.card-blog { color: var(--coral); }
+.card-tofufu { color: var(--lime); }
+.card-wallet { color: var(--violet); }
+.project-card strong, .project-card .description { color: var(--ink); }
+
+footer { display: flex; align-items: center; gap: 18px; min-height: 120px; color: #666a66; font-size: 9px; }
+.footer-line { width: 42px; height: 1px; background: var(--line); }
+
+@media (max-width: 700px) {
+  .page-shell { width: min(100% - 24px, 1180px); }
+  .intro { min-height: 76px; }
+  .identity { font-size: 13px; }
+  .github-link span:first-child { display: none; }
+  .hero { padding-top: 72px; }
+  h1 { letter-spacing: -0.055em; }
+  .project-grid { grid-template-columns: 1fr; }
+  .project-card { min-height: 280px; padding: 22px; }
+  .card-body { right: 22px; bottom: 24px; left: 22px; }
+  .card-icon { top: 20px; right: 22px; }
+  footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; }
+  .footer-line { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}

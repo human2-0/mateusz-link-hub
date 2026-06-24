@@ -1,0 +1,109 @@
+name: Deploy link hub and shared router
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mateusz-link-hub-oracle
+  cancel-in-progress: true
+
+env:
+  ORACLE_HOST: ${{ vars.ORACLE_HOST || '79.72.79.130' }}
+  ORACLE_USER: ${{ vars.ORACLE_USER || 'opc' }}
+  ORACLE_SSH_PORT: ${{ vars.ORACLE_SSH_PORT || '22' }}
+  PUBLIC_PORT: ${{ vars.PUBLIC_PORT || '8080' }}
+  THOUGHTS_PORT: ${{ vars.THOUGHTS_PORT || '8082' }}
+  TOFUFU_PORT: ${{ vars.TOFUFU_PORT || '8083' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify static hub
+        run: python3 -m unittest discover -s tests
+
+      - name: Configure SSH
+        env:
+          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          ORACLE_KNOWN_HOSTS: ${{ secrets.ORACLE_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${ORACLE_SSH_KEY:?Missing ORACLE_SSH_KEY repository secret}"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$ORACLE_SSH_KEY" > "$HOME/.ssh/oracle_deploy_key"
+          chmod 600 "$HOME/.ssh/oracle_deploy_key"
+          if [ -n "${ORACLE_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$ORACLE_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -p "$ORACLE_SSH_PORT" "$ORACLE_HOST" >> "$HOME/.ssh/known_hosts"
+          fi
+
+      - name: Copy link hub
+        run: |
+          tar -czf /tmp/mateusz-link-hub.tar.gz public
+          scp -P "$ORACLE_SSH_PORT" -i "$HOME/.ssh/oracle_deploy_key" \
+            shared_site_router.py /tmp/mateusz-link-hub.tar.gz \
+            "$ORACLE_USER@$ORACLE_HOST:/tmp/"
+
+      - name: Install and restart shared router
+        run: |
+          ssh -p "$ORACLE_SSH_PORT" -i "$HOME/.ssh/oracle_deploy_key" "$ORACLE_USER@$ORACLE_HOST" \
+            "PUBLIC_PORT='$PUBLIC_PORT' THOUGHTS_PORT='$THOUGHTS_PORT' TOFUFU_PORT='$TOFUFU_PORT' bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          sudo mkdir -p /opt/mateusz-link-hub
+          sudo rm -rf /opt/mateusz-link-hub/public
+          sudo tar -xzf /tmp/mateusz-link-hub.tar.gz -C /opt/mateusz-link-hub
+          sudo chown -R root:root /opt/mateusz-link-hub
+          sudo install -m 0755 /tmp/shared_site_router.py /usr/local/bin/shared_site_router.py
+
+          cat > /tmp/shared-sites.service <<EOF
+          [Unit]
+          Description=Mateusz link hub and shared site router
+          After=network.target podman.service
+          Requires=podman.service
+
+          [Service]
+          Type=simple
+          User=$USER
+          Environment=PUBLIC_PORT=$PUBLIC_PORT
+          Environment=LANDING_ROOT=/opt/mateusz-link-hub/public
+          Environment=THOUGHTS_HOST=127.0.0.1
+          Environment=THOUGHTS_PORT=$THOUGHTS_PORT
+          Environment=MASTER_PREFIX=/master-compounder
+          Environment=LEGACY_MASTER_PREFIX=/master_compounder
+          Environment=MASTER_ROOT=/home/$USER/master_compounder_web
+          Environment=TOFUFU_PREFIX=/tofufu
+          Environment=TOFUFU_HOST=127.0.0.1
+          Environment=TOFUFU_PORT=$TOFUFU_PORT
+          ExecStart=/usr/bin/python3 /usr/local/bin/shared_site_router.py
+          Restart=always
+          RestartSec=3
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          sudo install -m 0644 /tmp/shared-sites.service /etc/systemd/system/shared-sites.service
+          sudo systemctl daemon-reload
+          sudo systemctl enable --now shared-sites.service
+          sudo systemctl restart shared-sites.service
+          sleep 2
+          curl --fail "http://127.0.0.1:$PUBLIC_PORT/" | grep -F 'Mateusz Dwornikiewicz' >/dev/null
+          curl --fail --head "http://127.0.0.1:$PUBLIC_PORT/thoughts-blog/"
+          curl --fail --head "http://127.0.0.1:$PUBLIC_PORT/master-compounder/"
+          curl --fail "http://127.0.0.1:$PUBLIC_PORT/tofufu/" | grep -F 'Tofufu' >/dev/null
+          REMOTE_SCRIPT
+
+      - name: Verify public hub
+        run: |
+          curl --fail --max-time 20 "http://$ORACLE_HOST:$PUBLIC_PORT/" | grep -F 'Mateusz Dwornikiewicz' >/dev/null
+          curl --fail --max-time 20 "http://$ORACLE_HOST:$PUBLIC_PORT/tofufu/" | grep -F 'Mumble observatory' >/dev/null
