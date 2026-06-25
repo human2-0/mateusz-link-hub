@@ -129,21 +129,19 @@ h1 em { color: var(--muted); font-style: normal; }
 .card-icon { position: absolute; top: 25px; right: 28px; color: currentColor; font-size: 26px; transition: transform 180ms ease; }
 .project-card:hover .card-icon { transform: translate(3px, -3px); }
 .card-visual {
-  position: absolute;
-  top: 72px;
-  left: 28px;
+  position: relative;
   display: grid;
-  width: 76px;
-  height: 76px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
+  border-radius: 11px;
   background:
     radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.24), transparent 34%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.26);
-  transform: rotate(-1deg);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24);
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 .card-visual::before {
@@ -158,29 +156,29 @@ h1 em { color: var(--muted); font-style: normal; }
   position: relative;
   z-index: 1;
   display: block;
-  width: 54px;
-  height: 54px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 .card-cv .card-visual img {
-  width: 58px;
-  height: 58px;
+  width: 26px;
+  height: 26px;
 }
 .card-blog .card-visual img,
 .card-tofufu .card-visual img,
 .card-wallet .card-visual img {
-  width: 56px;
-  height: 56px;
+  width: 25px;
+  height: 25px;
 }
 .project-card:hover .card-visual,
 .project-card:focus-visible .card-visual {
   border-color: color-mix(in srgb, currentColor 42%, rgba(255, 255, 255, 0.18));
-  box-shadow: 0 20px 62px rgba(0, 0, 0, 0.32);
-  transform: rotate(0deg) translateY(-3px) scale(1.03);
+  box-shadow: 0 13px 34px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px) scale(1.04);
 }
 .card-body { position: absolute; right: 28px; bottom: 28px; left: 28px; display: flex; flex-direction: column; align-items: flex-start; }
-.status { margin-bottom: 13px; color: var(--muted); font-size: 10px; }
-.status i { display: inline-block; width: 5px; height: 5px; margin: 0 7px 1px 0; border-radius: 50%; background: currentColor; }
+.status { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 13px; color: var(--muted); font-size: 10px; }
+.status i { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .status.live { color: var(--lime); }
 .project-card strong { font-size: clamp(25px, 3vw, 38px); font-weight: 500; letter-spacing: -0.035em; }
 .description { max-width: 390px; margin-top: 12px; color: #aeb1ad; line-height: 1.55; }
@@ -203,13 +201,13 @@ footer { display: flex; align-items: center; gap: 18px; min-height: 120px; color
   .hero { padding-top: 72px; }
   h1 { letter-spacing: -0.055em; }
   .project-grid { grid-template-columns: 1fr; }
-  .project-card { min-height: 290px; padding: 22px; }
-  .card-visual { top: 60px; left: 22px; width: 68px; height: 68px; border-radius: 20px; }
+  .project-card { min-height: 280px; padding: 22px; }
+  .card-visual { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
   .card-visual img,
   .card-cv .card-visual img,
   .card-blog .card-visual img,
   .card-tofufu .card-visual img,
-  .card-wallet .card-visual img { width: 48px; height: 48px; }
+  .card-wallet .card-visual img { width: 23px; height: 23px; }
   .card-body { right: 22px; bottom: 24px; left: 22px; }
   .card-icon { top: 20px; right: 22px; }
   footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; }
