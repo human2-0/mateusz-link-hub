@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Thoughts Blog icon</title>
+  <desc id="desc">A warm abstract notebook and signal mark for writing about systems and technology.</desc>
+  <defs>
+    <linearGradient id="paper" x1="116" x2="398" y1="98" y2="412" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff0d8"/>
+      <stop offset="1" stop-color="#ff8066"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="141" x2="369" y1="133" y2="379" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2b1a18"/>
+      <stop offset="1" stop-color="#0b0d12"/>
+    </linearGradient>
+    <filter id="shadow" x="64" y="64" width="384" height="384" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="22" flood-color="#0b0d12" flood-opacity=".38" stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="126" fill="#17120f"/>
+  <circle cx="392" cy="119" r="76" fill="#ff8066" opacity=".22"/>
+  <circle cx="119" cy="386" r="104" fill="#c8f25d" opacity=".12"/>
+  <g filter="url(#shadow)">
+    <path fill="url(#paper)" d="M142 103h188l64 65v229c0 12-10 22-22 22H142c-12 0-22-10-22-22V125c0-12 10-22 22-22Z"/>
+    <path fill="#ffd4bd" d="M326 104v49c0 12 10 22 22 22h47l-69-71Z"/>
+    <path fill="url(#ink)" d="M171 193h132c8 0 15 7 15 15s-7 15-15 15H171c-8 0-15-7-15-15s7-15 15-15Zm0 65h172c8 0 15 7 15 15s-7 15-15 15H171c-8 0-15-7-15-15s7-15 15-15Zm0 66h103c8 0 15 7 15 15s-7 15-15 15H171c-8 0-15-7-15-15s7-15 15-15Z"/>
+    <path fill="#c8f25d" d="M346 307c27 0 49 22 49 49s-22 49-49 49-49-22-49-49 22-49 49-49Zm0 25a24 24 0 1 0 0 48 24 24 0 0 0 0-48Z"/>
+  </g>
+</svg>

@@ -128,6 +128,57 @@ h1 em { color: var(--muted); font-style: normal; }
 .card-number { color: #6f736f; font-size: 11px; }
 .card-icon { position: absolute; top: 25px; right: 28px; color: currentColor; font-size: 26px; transition: transform 180ms ease; }
 .project-card:hover .card-icon { transform: translate(3px, -3px); }
+.card-visual {
+  position: absolute;
+  top: 78px;
+  left: 28px;
+  display: grid;
+  width: 116px;
+  height: 116px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+  transform: rotate(-2deg);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+.card-visual::before {
+  position: absolute;
+  inset: -36%;
+  background: radial-gradient(circle, currentColor 0 2px, transparent 2px 100%) 0 0 / 18px 18px;
+  content: "";
+  opacity: 0.11;
+  transform: rotate(14deg);
+}
+.card-visual img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+}
+.card-cv .card-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-blog .card-visual img,
+.card-tofufu .card-visual img,
+.card-wallet .card-visual img {
+  width: 82%;
+  height: 82%;
+}
+.project-card:hover .card-visual,
+.project-card:focus-visible .card-visual {
+  border-color: color-mix(in srgb, currentColor 42%, rgba(255, 255, 255, 0.18));
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.34);
+  transform: rotate(0deg) translateY(-5px) scale(1.03);
+}
 .card-body { position: absolute; right: 28px; bottom: 28px; left: 28px; display: flex; flex-direction: column; align-items: flex-start; }
 .status { margin-bottom: 13px; color: var(--muted); font-size: 10px; }
 .status i { display: inline-block; width: 5px; height: 5px; margin: 0 7px 1px 0; border-radius: 50%; background: currentColor; }
@@ -153,7 +204,8 @@ footer { display: flex; align-items: center; gap: 18px; min-height: 120px; color
   .hero { padding-top: 72px; }
   h1 { letter-spacing: -0.055em; }
   .project-grid { grid-template-columns: 1fr; }
-  .project-card { min-height: 280px; padding: 22px; }
+  .project-card { min-height: 320px; padding: 22px; }
+  .card-visual { top: 62px; left: 22px; width: 96px; height: 96px; border-radius: 27px; }
   .card-body { right: 22px; bottom: 24px; left: 22px; }
   .card-icon { top: 20px; right: 22px; }
   footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; }
