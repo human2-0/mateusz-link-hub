@@ -1,0 +1,8 @@
+[Unit]
+Description=Renew the Mateusz Apps public TLS certificate
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/certbot/bin/certbot renew --quiet --preferred-profile shortlived --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"

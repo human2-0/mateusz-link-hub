@@ -8,10 +8,11 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
-LANDING_ROOT = Path(os.environ.get("LANDING_ROOT", "/opt/mateusz-link-hub/public")).resolve()
+APP_ROOT = Path(os.environ.get("APP_ROOT", "/opt/mateusz-apps")).resolve()
+LANDING_ROOT = Path(os.environ.get("LANDING_ROOT", APP_ROOT / "hub/public")).resolve()
 MASTER_PREFIX = os.environ.get("MASTER_PREFIX", "/master-compounder").rstrip("/")
 LEGACY_MASTER_PREFIX = os.environ.get("LEGACY_MASTER_PREFIX", "/master_compounder").rstrip("/")
-MASTER_ROOT = os.environ.get("MASTER_ROOT", "/home/opc/master_compounder_web")
+MASTER_ROOT = os.environ.get("MASTER_ROOT", str(APP_ROOT / "master-compounder/current"))
 TOFUFU_PREFIX = os.environ.get("TOFUFU_PREFIX", "/tofufu").rstrip("/")
 TOFUFU_HOST = os.environ.get("TOFUFU_HOST", "127.0.0.1")
 TOFUFU_PORT = int(os.environ.get("TOFUFU_PORT", "8083"))
@@ -156,7 +157,7 @@ class Router(SimpleHTTPRequestHandler):
             if key.lower() not in {"host", "connection", "content-length"}
         }
         headers["Host"] = self.headers.get("Host", f"{host}:{port}")
-        headers["X-Forwarded-Proto"] = "http"
+        headers["X-Forwarded-Proto"] = self.headers.get("X-Forwarded-Proto", "http")
         headers["X-Forwarded-Host"] = self.headers.get("Host", "")
         headers["X-Real-IP"] = self.client_address[0]
         connection = http.client.HTTPConnection(host, port, timeout=30)

@@ -1,7 +1,6 @@
 # Mateusz link hub
 
-Independent project landing page and shared path router for the services on
-`79.72.79.130:8080`.
+Independent landing page and route gateway for Mateusz Apps on Oracle.
 
 The root page is intentionally static. Application deployments own only their
 private service ports; this repository owns `/` and the public route map:
@@ -12,3 +11,5 @@ private service ports; this repository owns `/` and the public route map:
 
 Run the small source checks with `python3 -m unittest discover -s tests`.
 Production deployment is handled by `.github/workflows/deploy-oracle.yml`.
+The VM naming contract, ownership boundaries, and expansion checklist are in
+[`DEPLOYMENT.md`](DEPLOYMENT.md).

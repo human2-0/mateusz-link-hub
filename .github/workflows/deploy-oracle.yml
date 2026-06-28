@@ -1,4 +1,4 @@
-name: Deploy link hub and shared router
+name: Deploy Mateusz Apps hub
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: mateusz-link-hub-oracle
+  group: mateusz-apps-hub-production
   cancel-in-progress: true
 
 env:
@@ -19,6 +19,7 @@ env:
   PUBLIC_PORT: ${{ vars.PUBLIC_PORT || '8080' }}
   THOUGHTS_PORT: ${{ vars.THOUGHTS_PORT || '8082' }}
   TOFUFU_PORT: ${{ vars.TOFUFU_PORT || '8083' }}
+  APP_ROOT: /opt/mateusz-apps
 
 jobs:
   deploy:
@@ -52,58 +53,92 @@ jobs:
         run: |
           tar -czf /tmp/mateusz-link-hub.tar.gz public
           scp -P "$ORACLE_SSH_PORT" -i "$HOME/.ssh/oracle_deploy_key" \
-            shared_site_router.py /tmp/mateusz-link-hub.tar.gz \
+            shared_site_router.py deploy/nginx.conf.template \
+            systemd/mateusz-apps-certbot-renew.service \
+            systemd/mateusz-apps-certbot-renew.timer \
+            /tmp/mateusz-link-hub.tar.gz \
             "$ORACLE_USER@$ORACLE_HOST:/tmp/"
 
-      - name: Install and restart shared router
+      - name: Install and restart hub router
         run: |
           ssh -p "$ORACLE_SSH_PORT" -i "$HOME/.ssh/oracle_deploy_key" "$ORACLE_USER@$ORACLE_HOST" \
-            "PUBLIC_PORT='$PUBLIC_PORT' THOUGHTS_PORT='$THOUGHTS_PORT' TOFUFU_PORT='$TOFUFU_PORT' bash -s" <<'REMOTE_SCRIPT'
+            "PUBLIC_PORT='$PUBLIC_PORT' THOUGHTS_PORT='$THOUGHTS_PORT' TOFUFU_PORT='$TOFUFU_PORT' APP_ROOT='$APP_ROOT' bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
-          sudo mkdir -p /opt/mateusz-link-hub
-          sudo rm -rf /opt/mateusz-link-hub/public
-          sudo tar -xzf /tmp/mateusz-link-hub.tar.gz -C /opt/mateusz-link-hub
-          sudo chown -R root:root /opt/mateusz-link-hub
-          sudo install -m 0755 /tmp/shared_site_router.py /usr/local/bin/shared_site_router.py
+          hub_root="$APP_ROOT/hub"
+          master_root="$APP_ROOT/master-compounder/current"
+          sudo mkdir -p "$hub_root" "$master_root"
+          sudo rm -rf "$hub_root/public"
+          sudo tar -xzf /tmp/mateusz-link-hub.tar.gz -C "$hub_root"
+          sudo install -m 0755 /tmp/shared_site_router.py "$hub_root/router.py"
+          sudo chown -R root:root "$hub_root"
 
-          cat > /tmp/shared-sites.service <<EOF
+          # One-time compatibility migration from the pre-namespace CV path.
+          if ! sudo test -f "$master_root/index.html" && sudo test -f /home/$USER/master_compounder_web/index.html; then
+            sudo cp -a /home/$USER/master_compounder_web/. "$master_root/"
+          fi
+
+          cat > /tmp/mateusz-apps-hub.service <<EOF
           [Unit]
-          Description=Mateusz link hub and shared site router
+          Description=Mateusz Apps hub and route gateway
           After=network.target podman.service
           Requires=podman.service
 
           [Service]
           Type=simple
           User=$USER
+          Environment=APP_ROOT=$APP_ROOT
           Environment=PUBLIC_PORT=$PUBLIC_PORT
-          Environment=LANDING_ROOT=/opt/mateusz-link-hub/public
+          Environment=LANDING_ROOT=$hub_root/public
           Environment=THOUGHTS_HOST=127.0.0.1
           Environment=THOUGHTS_PORT=$THOUGHTS_PORT
           Environment=MASTER_PREFIX=/master-compounder
           Environment=LEGACY_MASTER_PREFIX=/master_compounder
-          Environment=MASTER_ROOT=/home/$USER/master_compounder_web
+          Environment=MASTER_ROOT=$master_root
           Environment=TOFUFU_PREFIX=/tofufu
           Environment=TOFUFU_HOST=127.0.0.1
           Environment=TOFUFU_PORT=$TOFUFU_PORT
-          ExecStart=/usr/bin/python3 /usr/local/bin/shared_site_router.py
+          ExecStart=/usr/bin/python3 $hub_root/router.py
           Restart=always
           RestartSec=3
 
           [Install]
           WantedBy=multi-user.target
           EOF
-          sudo install -m 0644 /tmp/shared-sites.service /etc/systemd/system/shared-sites.service
+          sudo install -m 0644 /tmp/mateusz-apps-hub.service /etc/systemd/system/mateusz-apps-hub.service
           sudo systemctl daemon-reload
-          sudo systemctl enable --now shared-sites.service
-          sudo systemctl restart shared-sites.service
+          sudo systemctl disable --now shared-sites.service >/dev/null 2>&1 || true
+          sudo systemctl enable mateusz-apps-hub.service
+          if ! sudo systemctl restart mateusz-apps-hub.service; then
+            sudo systemctl enable --now shared-sites.service >/dev/null 2>&1 || true
+            exit 1
+          fi
           sleep 2
           curl --fail "http://127.0.0.1:$PUBLIC_PORT/" | grep -F 'Mateusz Dwornikiewicz' >/dev/null
-          curl --fail --head "http://127.0.0.1:$PUBLIC_PORT/thoughts-blog/"
-          curl --fail --head "http://127.0.0.1:$PUBLIC_PORT/master-compounder/"
-          curl --fail "http://127.0.0.1:$PUBLIC_PORT/tofufu/" | grep -F 'Tofufu' >/dev/null
+          curl --fail --head --max-time 10 "http://127.0.0.1:$PUBLIC_PORT/master-compounder/"
+          curl --fail --head --max-time 10 "http://127.0.0.1:$PUBLIC_PORT/master_compounder/" \
+            | grep -Fi 'location: /master-compounder/' >/dev/null
+
+          if sudo test -f "/etc/letsencrypt/live/$ORACLE_HOST/fullchain.pem"; then
+            sed -e "s/__PUBLIC_HOST__/$ORACLE_HOST/g" -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" \
+              /tmp/nginx.conf.template > /tmp/mateusz-apps.conf
+            sudo cp -a /etc/nginx/conf.d/tofufu-ip-https.conf /tmp/tofufu-ip-https.conf.backup 2>/dev/null || true
+            sudo rm -f /etc/nginx/conf.d/tofufu-ip-https.conf
+            sudo install -m 0644 /tmp/mateusz-apps.conf /etc/nginx/conf.d/mateusz-apps.conf
+            if ! sudo nginx -t; then
+              sudo rm -f /etc/nginx/conf.d/mateusz-apps.conf
+              sudo cp -a /tmp/tofufu-ip-https.conf.backup /etc/nginx/conf.d/tofufu-ip-https.conf 2>/dev/null || true
+              exit 1
+            fi
+            sudo systemctl reload nginx
+            sudo install -m 0644 /tmp/mateusz-apps-certbot-renew.service /etc/systemd/system/mateusz-apps-certbot-renew.service
+            sudo install -m 0644 /tmp/mateusz-apps-certbot-renew.timer /etc/systemd/system/mateusz-apps-certbot-renew.timer
+            sudo systemctl disable --now tofufu-certbot-renew.timer >/dev/null 2>&1 || true
+            sudo systemctl daemon-reload
+            sudo systemctl enable --now mateusz-apps-certbot-renew.timer
+          fi
           REMOTE_SCRIPT
 
       - name: Verify public hub
         run: |
           curl --fail --max-time 20 "http://$ORACLE_HOST:$PUBLIC_PORT/" | grep -F 'Mateusz Dwornikiewicz' >/dev/null
-          curl --fail --max-time 20 "http://$ORACLE_HOST:$PUBLIC_PORT/tofufu/" | grep -F 'Mumble observatory' >/dev/null
+          curl --fail --head --max-time 20 "http://$ORACLE_HOST:$PUBLIC_PORT/master-compounder/"
