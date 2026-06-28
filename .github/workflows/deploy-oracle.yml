@@ -62,7 +62,7 @@ jobs:
       - name: Install and restart hub router
         run: |
           ssh -p "$ORACLE_SSH_PORT" -i "$HOME/.ssh/oracle_deploy_key" "$ORACLE_USER@$ORACLE_HOST" \
-            "PUBLIC_PORT='$PUBLIC_PORT' THOUGHTS_PORT='$THOUGHTS_PORT' TOFUFU_PORT='$TOFUFU_PORT' APP_ROOT='$APP_ROOT' bash -s" <<'REMOTE_SCRIPT'
+            "ORACLE_HOST='$ORACLE_HOST' PUBLIC_PORT='$PUBLIC_PORT' THOUGHTS_PORT='$THOUGHTS_PORT' TOFUFU_PORT='$TOFUFU_PORT' APP_ROOT='$APP_ROOT' bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
           hub_root="$APP_ROOT/hub"
           master_root="$APP_ROOT/master-compounder/current"
