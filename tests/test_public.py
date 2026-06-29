@@ -20,6 +20,7 @@ class PublicSiteTest(unittest.TestCase):
         router = (ROOT / "shared_site_router.py").read_text()
         self.assertIn('"/": "index.html"', router)
         self.assertIn('"/assets/project-constellation.svg"', router)
+        self.assertIn('"/assets/nav-profile.png"', router)
         self.assertIn('"/assets/cards/profile-icon.png"', router)
         self.assertIn('"/assets/cards/thoughts-blog-icon.svg"', router)
         self.assertIn('"/assets/cards/tofufu-icon.png"', router)
@@ -35,6 +36,13 @@ class PublicSiteTest(unittest.TestCase):
         ):
             self.assertIn(f'src="{asset}"', html)
             self.assertTrue((ROOT / "public" / asset.removeprefix("/")).exists())
+
+    def test_top_bar_uses_profile_avatar(self):
+        html = (ROOT / "public" / "index.html").read_text()
+        asset = "/assets/nav-profile.png"
+        self.assertIn(f'src="{asset}"', html)
+        self.assertNotIn('<span class="monogram">MD</span>', html)
+        self.assertTrue((ROOT / "public" / asset.removeprefix("/")).exists())
 
 
 if __name__ == "__main__":

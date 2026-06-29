@@ -31,6 +31,7 @@ LANDING_FILES = {
     "/styles.css": "styles.css",
     "/assets/project-constellation.svg": "assets/project-constellation.svg",
     "/assets/favicon.svg": "assets/favicon.svg",
+    "/assets/nav-profile.png": "assets/nav-profile.png",
     "/assets/cards/profile-icon.png": "assets/cards/profile-icon.png",
     "/assets/cards/thoughts-blog-icon.svg": "assets/cards/thoughts-blog-icon.svg",
     "/assets/cards/tofufu-icon.png": "assets/cards/tofufu-icon.png",
